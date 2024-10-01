@@ -25,10 +25,15 @@ _global_variables() {
 
 _requirements() {
   _check_cmd \
-    'node' \
-    'nodejs'
+    'qrencode'
+  _os="$( \
+    _uname \
+      -o)"
+  if [[ "${_os}" == "GNU/Linux" ]]; then
   _check_cmd \
-    'npx'
+    'setfont' \
+    'kbd'
+  fi
 }
 
 _get_conf_dir_path() {
@@ -45,21 +50,53 @@ _get_conf_dir_path() {
 _qrview() {
   local \
     _string="${1}" \
+    _font \
+    _fonts \
     _oldpwd \
+    _os \
+    _setfont \
+    _share \
+    _usr \
+    _view \
     _work_dir \
-    _qrencode_opts=()
+    _qrencode_opts=() \
+    _setfont_opts=() \
+    _viewer
   _work_dir="$( \
     mktemp \
       -d)"
-  _share="${_work_dir}/share.jpg"
+  _view="${_work_dir}/view.jpg"
   _qrencode_opts+=(
     -o 
-      "${_share}"
+      "${_view}"
   )
   _oldpwd="$( \
     pwd)"
   cd \
     "${_work_dir}"
+  if [[ -n "DISPLAY" ]]; then
+    _os="$( \
+      uname \
+        -o)"
+    if [[ "${_os}" == "GNU/Linux" == "" ]]; then
+      _height=22
+      _setfont="$( \
+        command \
+          -v \
+          "setfont")"
+      _viewer="${_setfont}"
+      _usr="$( \
+        dirname \
+         "$(dirname \
+              "${_setfont}")")"
+      _share="${_usr}/share"
+      _fonts="${_share}/kbd/consolefonts"
+      _font="${_fonts}/iso02-12x${_height}.psfu.gz"
+      "${_setfont}" \
+        -h22 \
+          "${_font}"
+    fi
+  fi
   qrencode \
     "${_qrencode_opts[@]}" \
     "${_string}"
