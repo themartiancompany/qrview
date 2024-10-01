@@ -34,7 +34,7 @@ _requirements() {
     'setfont' \
     'kbd'
   _check_cmd \
-    'showconsolefonts' \
+    'showconsolefont' \
     'kbd'
   fi
 }
