@@ -50,6 +50,17 @@ _get_conf_dir_path() {
     "${_dir}"
 }
 
+_height_get() {
+  local \
+    _showconsolefont_opts=()
+  showconsolefont \
+    "${_showconsolefont_opts}" | \
+    awk \
+      -F \
+        ":" \
+      '{print $3}'
+}
+
 _qrview() {
   local \
     _string="${1}" \
@@ -65,6 +76,11 @@ _qrview() {
     _qrencode_opts=() \
     _setfont_opts=() \
     _viewer
+  _os="$( \
+    uname \
+      -o)"
+  _viewer="xdg-open"
+  if [[ "${_os}" == "Android" ]]; then
   _work_dir="$( \
     mktemp \
       -d)"
@@ -81,13 +97,18 @@ _qrview() {
     _os="$( \
       uname \
         -o)"
-    if [[ "${_os}" == "GNU/Linux" == "" ]]; then
+    if [[ "${_os}" == "GNU/Linux" ]]; then
+      _showconsolefont_opts+=(
+        -i
+      )
+      _oldheight="$( \
+        _height_get)"
       _height=22
       _setfont="$( \
         command \
           -v \
           "setfont")"
-      _viewer="${_setfont}"
+      _viewer="cacaview"
       _usr="$( \
         dirname \
          "$(dirname \
@@ -103,8 +124,8 @@ _qrview() {
   qrencode \
     "${_qrencode_opts[@]}" \
     "${_string}"
-  cacaview \
-    "${_share}"
+  "${_viewer}" \
+    "${_view}"
   cd \
     "${_oldpwd}"
   rm \
