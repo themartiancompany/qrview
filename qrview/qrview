@@ -73,6 +73,8 @@ _viewer_auto_detect() {
   if [[ "${_os}" == "Android" ]]; then
     _viewer="termux-open"
   fi
+  echo \
+    "${_viewer}"
 }
 
 _qrview() {
