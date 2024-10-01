@@ -53,7 +53,7 @@ _height_get() {
   local \
     _showconsolefont_opts=()
   showconsolefont \
-    "${_showconsolefont_opts}" | \
+    "${_showconsolefont_opts[@]}" | \
     awk \
       -F \
         "x" \
