@@ -105,6 +105,9 @@ _qrview() {
   _qrencode_opts+=(
     -o 
       "${_view}"
+    -d
+      512
+    -s 12
   )
   _oldpwd="$( \
     pwd)"
