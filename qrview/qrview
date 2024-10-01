@@ -66,7 +66,7 @@ _viewer_auto_detect() {
   _os="$( \
     uname \
       -o)"
-  _viever="cacaview"
+  _viever="picture-viewer"
   if [ ! -n 'DISPLAY' ]; then
     _viewer="xdg-open"
   fi
