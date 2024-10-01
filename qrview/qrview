@@ -74,12 +74,6 @@ _viewer_auto_detect() {
     uname \
       -o)"
   _viewer="picture-viewer"
-  if [ ! -n 'DISPLAY' ]; then
-    _viewer="xdg-open"
-  fi
-  if [[ "${_os}" == "Android" ]]; then
-    _viewer="termux-open"
-  fi
   echo \
     "${_viewer}"
 }
@@ -140,7 +134,8 @@ _qrview() {
     _work_dir="${3}" \
     _oldpwd \
     _os \
-    _view
+    _view \
+    _viewer_opts=()
   _view="${_work_dir}/view.png"
   _oldpwd="$( \
     pwd)"
@@ -154,24 +149,18 @@ _qrview() {
       _oldheight="$( \
         _height_get)"
       _view_human
-      # _height=22
-      # _setfont="$( \
-      #   command \
-      #     -v \
-      #     "setfont")"
-      # _share="$( \
-      #   _get_usr)/share"
-      # _fonts="${_share}/kbd/consolefonts"
-      # _font="${_fonts}/iso02-12x${_height}.psfu.gz"
-      # "${_setfont}" \
-      #   -h22 \
-      #     "${_font}"
     fi
   fi
   _encode \
     "${_string}" \
     "${_view}"
+  _viewer_opts+=(
+    -v
+    -t
+      "text"
+  )
   "${_viewer}" \
+    "${_viewer_opts[@]}" \
     "${_view}"
   cd \
     "${_oldpwd}"
