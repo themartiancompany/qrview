@@ -25,16 +25,22 @@ _global_variables() {
 _requirements() {
   _check_cmd \
     'qrencode'
+  _check_cmd \
+    'picture-viewer'
   _os="$( \
     uname \
       -o)"
   if [[ "${_os}" == "GNU/Linux" ]]; then
-  _check_cmd \
-    'setfont' \
-    'kbd'
-  _check_cmd \
-    'showconsolefont' \
-    'kbd'
+    _check_cmd \
+      'setfont' \
+      'kbd'
+    _check_cmd \
+      'showconsolefont' \
+      'kbd'
+  elif [[ "${_os}" == "Android" ]]; then
+    _check_cmd \
+      'termux-open' \
+      'termux-tools'
   fi
 }
 
