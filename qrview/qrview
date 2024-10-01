@@ -17,6 +17,7 @@ _global_variables() {
   view_date=""
   viewer_app=""
   target_string=""
+  work_dir=""
   color=""
   quiet=""
 }
@@ -77,6 +78,24 @@ _viewer_auto_detect() {
     "${_viewer}"
 }
 
+_encode() {
+  local \
+    _string="${1}" \
+    _view="${2}" \
+    _qrencode_opts=()
+  _qrencode_opts+=(
+    -o 
+      "${_view}"
+    -d
+      512
+    -s
+      12
+  )
+  qrencode \
+    "${_qrencode_opts[@]}" \
+    "${_string}"
+}
+
 _qrview() {
   local \
     _string="${1}" \
@@ -89,26 +108,11 @@ _qrview() {
     _share \
     _view \
     _work_dir \
-    _qrencode_opts=() \
     _setfont_opts=() \
-  _os="$( \
-    uname \
-      -o)"
-  _viewer="xdg-open"
-  if [[ "${_os}" == "Android" ]]; then
-    _viewer="termux-open"
-  fi
   _work_dir="$( \
     mktemp \
       -d)"
   _view="${_work_dir}/view.png"
-  _qrencode_opts+=(
-    -o 
-      "${_view}"
-    -d
-      512
-    -s 12
-  )
   _oldpwd="$( \
     pwd)"
   cd \
@@ -137,10 +141,9 @@ _qrview() {
           "${_font}"
     fi
   fi
-  qrencode \
-    --verbose \
-    "${_qrencode_opts[@]}" \
-    os."${_string}"
+  _encode \
+    "${_string}"
+    "${_view}"
   "${_viewer}" \
     "${_view}"
   cd \
@@ -161,6 +164,11 @@ _set_overrides() {
     "viewer" \
     "app" \
     "$(_viewer_auto_detect)"
+  _set_override \
+    "work" \
+    "dir" \
+    "$(mktemp \
+         -d)"
   if [[ -v override_quiet ]]; then
     quiet="${override_quiet}"
   elif [[ -z "${quiet}" ]]; then
@@ -195,8 +203,11 @@ Usage:
   options:
      -a <viewer_app>      Viewer application
                           ('picture viewer', 'xdg-open',
-                           'tetmux-open')
+                           'termux-open')
                           Default: '$(_get "viewer" "app")'
+     -w <work_dir>        Work directory
+                          Default: '$(_get "work" "dir")'
+
 
      -h                   This message.
      -c                   Enable color output
@@ -214,6 +225,7 @@ _show_config() {
   _msg_info "${app_name} configuration"
   _msg_info "                View date:   $(_get "view" "date")"
   _msg_info "               Viewer app:   $(_get "viewer" "app")"
+  _msg_info "                 Work dir:   $(_get "work" "dir")"
   _msg_info "            Target string:   $(_get "target" "string")"
 }
 
@@ -223,11 +235,12 @@ _requirements
 # shellcheck disable=SC2034
 while \
   getopts \
-    'a:cvh?' \
+    'a:w:cvh?' \
     arg; do
   case \
     "${arg}" in
     a) override_viewer_app="${OPTARG}";;
+    w) override_work_dir="${OPTARG}";;
     c) override_color="y" ;;
     v) override_quiet="n" ;;
     h|?) _set_overrides && \
