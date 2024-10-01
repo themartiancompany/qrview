@@ -304,9 +304,9 @@ _config_user_init \
       "name")"
 _show_config
 app_opts=(
-  "${viewer_app}"
-  "${worka_dir}"
   "${target_string}"
+  "${viewer_app}"
+  "${work_dir}"
 )
 _qrview \
   "${app_opts[@]}"
