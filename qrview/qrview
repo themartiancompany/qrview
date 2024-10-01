@@ -96,22 +96,45 @@ _encode() {
     "${_string}"
 }
 
+_font_human() {
+  local \
+    _share \
+    _font \
+    _fonts
+  _share="$( \
+    _get_usr)/share"
+  _fonts="${_share}/kbd/consolefonts"
+  _font="${_fonts}/iso02-12x${_height}.psfu.gz"
+  echo \
+    "${_font}"
+}
+
+_view_human() {
+  local \
+    _height=22 \
+    _setfont \
+    _setfont_opts=()
+  _setfont_opts+=(
+    -h"${_height}"
+  )
+  _setfont="$( \
+    command \
+      -v \
+      "setfont")"
+  "${_setfont}" \
+    "${_setfont_opts[@]}"
+    "$(_font_human)"
+
+}
+
 _qrview() {
   local \
     _string="${1}" \
     _viewer="${2}" \
-    _font \
-    _fonts \
+    _work_dir="${3}" \
     _oldpwd \
     _os \
-    _setfont \
-    _share \
-    _view \
-    _work_dir \
-    _setfont_opts=() \
-  _work_dir="$( \
-    mktemp \
-      -d)"
+    _view
   _view="${_work_dir}/view.png"
   _oldpwd="$( \
     pwd)"
@@ -122,27 +145,25 @@ _qrview() {
       uname \
         -o)"
     if [[ "${_os}" == "GNU/Linux" ]]; then
-      _showconsolefont_opts+=(
-        -i
-      )
       _oldheight="$( \
         _height_get)"
-      _height=22
-      _setfont="$( \
-        command \
-          -v \
-          "setfont")"
-      _viewer="cacaview"
-      _share="$(_get_usr)/share"
-      _fonts="${_share}/kbd/consolefonts"
-      _font="${_fonts}/iso02-12x${_height}.psfu.gz"
-      "${_setfont}" \
-        -h22 \
-          "${_font}"
+      _view_human
+      # _height=22
+      # _setfont="$( \
+      #   command \
+      #     -v \
+      #     "setfont")"
+      # _share="$( \
+      #   _get_usr)/share"
+      # _fonts="${_share}/kbd/consolefonts"
+      # _font="${_fonts}/iso02-12x${_height}.psfu.gz"
+      # "${_setfont}" \
+      #   -h22 \
+      #     "${_font}"
     fi
   fi
   _encode \
-    "${_string}"
+    "${_string}" \
     "${_view}"
   "${_viewer}" \
     "${_view}"
@@ -284,6 +305,7 @@ _config_user_init \
 _show_config
 app_opts=(
   "${viewer_app}"
+  "${worka_dir}"
   "${target_string}"
 )
 _qrview \
