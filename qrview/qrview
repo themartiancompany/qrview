@@ -122,7 +122,7 @@ _view_human() {
       -v \
       "setfont")"
   "${_setfont}" \
-    "${_setfont_opts[@]}"
+    "${_setfont_opts[@]}" \
     "$(_font_human)"
 
 }
