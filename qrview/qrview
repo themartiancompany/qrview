@@ -15,10 +15,8 @@ source \
 # shellcheck disable=SC2034
 _global_variables() {
   view_date=""
-  compiler_backend=""
-  target_contracts=()
-  out_dir=""
-  work_dir=""
+  viewer_app=""
+  target_string=""
   color=""
   quiet=""
 }
@@ -27,7 +25,7 @@ _requirements() {
   _check_cmd \
     'qrencode'
   _os="$( \
-    _uname \
+    uname \
       -o)"
   if [[ "${_os}" == "GNU/Linux" ]]; then
   _check_cmd \
@@ -57,34 +55,51 @@ _height_get() {
     "${_showconsolefont_opts}" | \
     awk \
       -F \
-        ":" \
+        "x" \
       '{print $3}'
+}
+
+_viewer_auto_detect() {
+  local \
+    _viewer \
+    _os
+  _os="$( \
+    uname \
+      -o)"
+  _viever="cacaview"
+  if [ ! -n 'DISPLAY' ]; then
+    _viewer="xdg-open"
+  fi
+  if [[ "${_os}" == "Android" ]]; then
+    _viewer="termux-open"
+  fi
 }
 
 _qrview() {
   local \
     _string="${1}" \
+    _viewer="${2}" \
     _font \
     _fonts \
     _oldpwd \
     _os \
     _setfont \
     _share \
-    _usr \
     _view \
     _work_dir \
     _qrencode_opts=() \
     _setfont_opts=() \
-    _viewer
   _os="$( \
     uname \
       -o)"
   _viewer="xdg-open"
   if [[ "${_os}" == "Android" ]]; then
+    _viewer="termux-open"
+  fi
   _work_dir="$( \
     mktemp \
       -d)"
-  _view="${_work_dir}/view.jpg"
+  _view="${_work_dir}/view.png"
   _qrencode_opts+=(
     -o 
       "${_view}"
@@ -109,11 +124,7 @@ _qrview() {
           -v \
           "setfont")"
       _viewer="cacaview"
-      _usr="$( \
-        dirname \
-         "$(dirname \
-              "${_setfont}")")"
-      _share="${_usr}/share"
+      _share="$(_get_usr)/share"
       _fonts="${_share}/kbd/consolefonts"
       _font="${_fonts}/iso02-12x${_height}.psfu.gz"
       "${_setfont}" \
@@ -122,23 +133,29 @@ _qrview() {
     fi
   fi
   qrencode \
+    --verbose \
     "${_qrencode_opts[@]}" \
-    "${_string}"
+    os."${_string}"
   "${_viewer}" \
     "${_view}"
   cd \
     "${_oldpwd}"
+  sleep \
+    10
   rm \
     -rf \
     "${_work_dir}"
 }
-
 
 _set_overrides() {
   _set_override \
     "view" \
     "date" \
     "$(_get_date_human)"
+  _set_override \
+    "viewer" \
+    "app" \
+    "$(_viewer_auto_detect)"
   if [[ -v override_quiet ]]; then
     quiet="${override_quiet}"
   elif [[ -z "${quiet}" ]]; then
@@ -168,8 +185,14 @@ Share a string using a QR code.
 Usage:
   $(_get "app" "name")
     [options]
-    <input_string>
+    <target_string>
+
   options:
+     -a <viewer_app>      Viewer application
+                          ('picture viewer', 'xdg-open',
+                           'tetmux-open')
+                          Default: '$(_get "viewer" "app")'
+
      -h                   This message.
      -c                   Enable color output
      -v                   Enable verbose output
@@ -185,7 +208,8 @@ ENDUSAGETEXT
 _show_config() {
   _msg_info "${app_name} configuration"
   _msg_info "                View date:   $(_get "view" "date")"
-  _msg_info "             Input string:   $(_get "input" "string")"
+  _msg_info "               Viewer app:   $(_get "viewer" "app")"
+  _msg_info "            Target string:   $(_get "target" "string")"
 }
 
 _globals
@@ -194,10 +218,11 @@ _requirements
 # shellcheck disable=SC2034
 while \
   getopts \
-    'cvh?' \
+    'a:cvh?' \
     arg; do
   case \
     "${arg}" in
+    a) override_viewer_app="${OPTARG}";;
     c) override_color="y" ;;
     v) override_quiet="n" ;;
     h|?) _set_overrides && \
@@ -216,10 +241,17 @@ shift \
   $(( \
     OPTIND - 1 \
   ))
-target_string="${1}"
-if [[ "${target_contracts[*]}" ==  "" ]]; then
+echo \
+  "$@"
+if (( 0 < "$#" )); then
+  _set \
+    "target" \
+    "string" \
+    "${1}"
+fi
+if [[ "$(_get "target" 'string')" ==  "" ]]; then
   _msg_error \
-    "no contracts given" \
+    "no string given" \
     0
   _set_overrides
   _usage \
@@ -233,7 +265,8 @@ _config_user_init \
       "name")"
 _show_config
 app_opts=(
-  "${in_string}"
+  "${viewer_app}"
+  "${target_string}"
 )
 _qrview \
   "${app_opts[@]}"
